@@ -26,6 +26,21 @@ var formatTime = function (date) {
   return hour.toString() + ":" + minute + " " + timeOfDay;
 };
 
+var findNextTrain = function (data) {
+  var now = new Date();
+
+  for (i=1; i < 10; i++) {
+    var trainData = data["train" + i.toString()]
+    var departure = new Date(trainData.scheduled_dpt_time);
+
+    if (now < departure) {
+      return trainData;
+    }
+  }
+
+  return data.train1;
+};
+
 var main = new UI.Card({
   title: "Loading",
   body: "Loading..."
@@ -56,19 +71,27 @@ var fromWilmette = {
 var body = "";
 
 ajax(fromCentral, function (data) {
-  var departure = new Date(data.train1.scheduled_dpt_time);
+  var next = findNextTrain(data);
+  var departure = new Date(next.scheduled_dpt_time);
+
   body += "C -> O " + formatTime(departure) + "\n";
 
   ajax(fromWilmette, function (data) {
-    var departure = new Date(data.train1.scheduled_dpt_time);
+    var next = findNextTrain(data);
+    var departure = new Date(next.scheduled_dpt_time);
+
     body += "W -> O " + formatTime(departure) + "\n";
 
     ajax(toCentral, function (data) {
-      var departure = new Date(data.train1.scheduled_dpt_time);
+      var next = findNextTrain(data);
+      var departure = new Date(next.scheduled_dpt_time);
+
       body += "O -> C " + formatTime(departure) + "\n";
 
       ajax(toWilmette, function (data) {
-        var departure = new Date(data.train1.scheduled_dpt_time);
+        var next = findNextTrain(data);
+        var departure = new Date(next.scheduled_dpt_time);
+
         body += "O -> W " + formatTime(departure);
 
         main.title("Metra Times");
